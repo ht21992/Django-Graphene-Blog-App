@@ -1,60 +1,31 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchBlogsAsync } from "./slices/blogSlice";
 import BlogList from "./components/BlogList";
 import AddBlog from "./components/AddBlog";
 import BlogDetails from "./components/BlogDetails";
 import BlogStats from "./components/BlogStats";
 import CSRFToken from "./components/CSRFToken";
-import axios from "axios";
-import Cookies from "js-cookie";
 import "./App.css";
 
 const App = () => {
+  const dispatch = useDispatch();
+  const { blogs, loading, maxBlogsLength } = useSelector((state) => state.blog);
   const [offset, setOffset] = useState(0);
-  const [loading, setLoading] = useState(false);
-
+  const [blogsFlag, setBlogsFlag] = useState(false)
   const renderedIds = new Set();
   const scrollableRef = useRef(null);
 
-  const fetchBlogs = async (currentOffset) => {
-    setLoading(true);
-
-    const graphqlQuery = {
-      query: `
-              query GetAllPosts($limit: Int, $offset: Int) {
-                  allPosts(limit: $limit, offset: $offset) {
-                    id
-                    title
-                    content
-                    createdAt
-                  }
-              }
-          `,
-      variables: {
-        limit: 5,
-        offset: currentOffset,
-      },
-    };
-
-    try {
-      const response = await axios.post("/graphql/", graphqlQuery, {
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": Cookies.get("csrftoken"),
-        },
-      });
-      // console.log(response.data);
-      const fetchedBlogs = response.data.data.allPosts;
-      setBlogs((pervBlgos) => [...pervBlgos, ...fetchedBlogs]);
-
-      setOffset((prevOffset) => prevOffset + fetchedBlogs.length);
-    } catch (error) {
-      console.error("Error fetching books:", error);
-    } finally {
-      setLoading(false);
+  const fetchBlogs = (currentOffset) => {
+    if (maxBlogsLength && maxBlogsLength < currentOffset ) {
+      setBlogsFlag(true);
+      return;
     }
+    dispatch(fetchBlogsAsync(currentOffset));
+    setOffset((prevOffset) => prevOffset + 5);
+
   };
 
-  const [blogs, setBlogs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [blog, setBlog] = useState({});
 
@@ -66,8 +37,6 @@ const App = () => {
     fetchBlogs(0);
   }, []);
 
-
-
   useLayoutEffect(() => {
     const handleScroll = () => {
       if (
@@ -75,7 +44,7 @@ const App = () => {
           scrollableRef.current.scrollHeight &&
         !loading
       ) {
-        setLoading(true);
+
         fetchBlogs(offset);
       }
     };
@@ -94,7 +63,6 @@ const App = () => {
     <div className="app-container">
       <CSRFToken />
       <header className="header">
-        {/* <h1>Interactive Blog Dashboard</h1> */}
         <input
           type="text"
           placeholder="Search blogs..."
@@ -108,16 +76,18 @@ const App = () => {
         <BlogStats blogs={blogs} />
         {!blog.id ? (
           <BlogList
-            blogs={filteredBlogs}
-            setBlog={setBlog}
-            renderedIds={renderedIds}
-            loading={loading}
-            scrollableRef={scrollableRef}
-          />
+          blogs={filteredBlogs}
+          setBlog={setBlog}
+          renderedIds={renderedIds}
+          loading={loading}
+          scrollableRef={scrollableRef}
+          blogsFlag={blogsFlag}
+
+        />
         ) : (
           <BlogDetails blog={blog} setBlog={setBlog} />
         )}
-        <AddBlog blogs={blogs} setBlogs={setBlogs} />
+        <AddBlog blogs={blogs} />
       </div>
     </div>
   );

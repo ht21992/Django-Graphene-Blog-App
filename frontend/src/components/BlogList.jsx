@@ -73,7 +73,7 @@ const sampleBlogs = [
   },
 ];
 
-const BlogList = ({ blogs, setBlog, renderedIds, loading, scrollableRef }) => (
+const BlogList = ({ blogs, setBlog, renderedIds, loading, scrollableRef,blogsFlag }) => (
   <div
     id="blogs-list-container"
     className="blog-list-card card"
@@ -96,6 +96,7 @@ const BlogList = ({ blogs, setBlog, renderedIds, loading, scrollableRef }) => (
           </div>
         );
       })}
+      {blogsFlag && (<p className="text-center"> No More Blogs</p>)}
       {loading && (
         <div className="loading-spinner">
           <div className="spinner"></div>

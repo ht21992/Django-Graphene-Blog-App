@@ -3,6 +3,11 @@
   overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: #007bff transparent;
+  cursor:default;
+}
+
+input{
+  cursor:text;
 }
 
 .app-container {
@@ -27,6 +32,7 @@
   border: 1px solid #ccc;
   border-radius: 20px;
   outline: none;
+
 }
 
 .dashboard {
@@ -165,4 +171,10 @@ h2 {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.text-center{
+  text-align: center;
+  font-size: 12px;
+  color: gray;
 }

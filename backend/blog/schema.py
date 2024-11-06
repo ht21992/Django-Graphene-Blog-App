@@ -13,6 +13,7 @@ class PostType(DjangoObjectType):
 # Resolvers
 class Query(graphene.ObjectType):
     all_posts = graphene.List(PostType, limit=graphene.Int(), offset=graphene.Int())
+    len_posts = graphene.Int()
 
     def resolve_all_posts(self, info, limit=None, offset=None):
         posts = Post.objects.all()
@@ -20,6 +21,9 @@ class Query(graphene.ObjectType):
             offset = offset or 0
             posts = posts[offset : offset + limit]
         return posts
+
+    def resolve_len_posts(self, info):
+        return Post.objects.all().count()
 
 
 # Mutations
