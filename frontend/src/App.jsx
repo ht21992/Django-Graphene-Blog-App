@@ -1,102 +1,90 @@
-import React, { useState } from 'react';
-import BlogList from './components/BlogList';
-import AddBlog from './components/AddBlog';
-import BlogDetails from './components/BlogDetails';
-import SearchFilter from './components/SearchFilter';
-import RecentBlogs from './components/RecentBlogs';
-import BlogStats from './components/BlogStats';
-import './App.css';
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
+import BlogList from "./components/BlogList";
+import AddBlog from "./components/AddBlog";
+import BlogDetails from "./components/BlogDetails";
+import BlogStats from "./components/BlogStats";
+import CSRFToken from "./components/CSRFToken";
+import axios from "axios";
+import Cookies from "js-cookie";
+import "./App.css";
 
 const App = () => {
+  const [offset, setOffset] = useState(0);
+  const [loading, setLoading] = useState(false);
 
-  const sampleBlogs = [
-    {
-      id: 1,
-      title: 'Getting Started with React',
-      content: 'React is a popular JavaScript library for building user interfaces...',
-      createdAt: '2024-10-01 10:00 AM',
-    },
-    {
-      id: 2,
-      title: 'Exploring JavaScript ES6 Features',
-      content: 'ES6 introduced a host of new features like let, const, arrow functions...',
-      createdAt: '2024-10-02 02:30 PM',
-    },
-    {
-      id: 3,
-      title: 'Understanding Async Programming',
-      content: 'Asynchronous programming is essential for handling network requests...',
-      createdAt: '2024-10-03 09:45 AM',
-    },
-    {
-      id: 4,
-      title: 'A Guide to CSS Flexbox',
-      content: 'CSS Flexbox is a layout model that allows responsive design without using floats or positioning...',
-      createdAt: '2024-10-04 11:15 AM',
-    },
-    {
-      id: 5,
-      title: 'Mastering Git: Essential Commands',
-      content: 'Git is a version control system that helps you track changes in your codebase...',
-      createdAt: '2024-10-05 01:20 PM',
-    },
-    {
-      id: 6,
-      title: 'Demystifying Promises in JavaScript',
-      content: 'Promises are a modern way to handle asynchronous operations in JavaScript...',
-      createdAt: '2024-10-06 03:30 PM',
-    },
-    {
-      id: 7,
-      title: 'Creating RESTful APIs with Express',
-      content: 'Learn how to build RESTful APIs using Express.js, a minimal and flexible Node.js web application framework...',
-      createdAt: '2024-10-07 04:50 PM',
-    },
-    {
-      id: 8,
-      title: 'Web Accessibility: Best Practices',
-      content: 'Making web applications accessible ensures that all users can interact with your content...',
-      createdAt: '2024-10-08 09:00 AM',
-    },
-    {
-      id: 9,
-      title: 'Introduction to TypeScript',
-      content: 'TypeScript is a superset of JavaScript that adds static typing to the language...',
-      createdAt: '2024-10-09 10:00 AM',
-    },
-    {
-      id: 10,
-      title: 'The Basics of Serverless Architecture',
-      content: 'Serverless architecture allows developers to build and run applications without managing servers...',
-      createdAt: '2024-10-10 11:30 AM',
-    },
-  ];
+  const renderedIds = new Set();
+  const scrollableRef = useRef(null);
 
-  const [blogs, setBlogs] = useState(sampleBlogs);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [blog,setBlog] = useState({})
+  const fetchBlogs = async (currentOffset) => {
+    setLoading(true);
+
+    const graphqlQuery = {
+      query: `
+              query GetAllPosts($limit: Int, $offset: Int) {
+                  allPosts(limit: $limit, offset: $offset) {
+                    id
+                    title
+                    content
+                    createdAt
+                  }
+              }
+          `,
+      variables: {
+        limit: 5,
+        offset: currentOffset,
+      },
+    };
+
+    try {
+      const response = await axios.post("/graphql/", graphqlQuery, {
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": Cookies.get("csrftoken"),
+        },
+      });
+      // console.log(response.data);
+      const fetchedBlogs = response.data.data.allPosts;
+      setBlogs((pervBlgos) => [...pervBlgos, ...fetchedBlogs]);
+
+      setOffset((prevOffset) => prevOffset + fetchedBlogs.length);
+    } catch (error) {
+      console.error("Error fetching books:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [blogs, setBlogs] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [blog, setBlog] = useState({});
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  const addBlog = () => {
-    if (title && content) {
-      const newBlog = {
-        id: blogs.length + 1,
-        title,
-        content,
-        createdAt,
-        // createdAt: moment().format(),
-      };
-      setBlogs([newBlog, ...blogs]);
-      setTitle('');
-      setContent('');
-    }
-  };
+  useEffect(() => {
+    fetchBlogs(0);
+  }, []);
 
+
+
+  useLayoutEffect(() => {
+    const handleScroll = () => {
+      if (
+        scrollableRef.current.scrollTop + scrollableRef.current.clientHeight >=
+          scrollableRef.current.scrollHeight &&
+        !loading
+      ) {
+        setLoading(true);
+        fetchBlogs(offset);
+      }
+    };
+
+    const scrollableContainer = scrollableRef.current;
+    scrollableContainer.addEventListener("scroll", handleScroll);
+
+    return () => scrollableContainer.removeEventListener("scroll", handleScroll);
+  }, [offset, loading]);
 
   const filteredBlogs = blogs.filter((blog) =>
     blog.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -104,8 +92,9 @@ const App = () => {
 
   return (
     <div className="app-container">
+      <CSRFToken />
       <header className="header">
-        <h1>Interactive Blog Dashboard</h1>
+        {/* <h1>Interactive Blog Dashboard</h1> */}
         <input
           type="text"
           placeholder="Search blogs..."
@@ -116,48 +105,19 @@ const App = () => {
       </header>
 
       <div className="dashboard">
-        <div className="card stats-card">
-          <h2>Blog Stats</h2>
-          <p>Total Blogs: {blogs.length}</p>
-          <p>Average Word Count: {Math.round(blogs.reduce((acc, blog) => acc + blog.content.split(' ').length, 0) / blogs.length)}</p>
-        </div>
-
+        <BlogStats blogs={blogs} />
         {!blog.id ? (
-          <div className="blog-list-card card">
-            <h2>Blog List</h2>
-            <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 200px)' }}>
-              {filteredBlogs.map((blog) => (
-                <div key={blog.id} className="blog-item">
-                  <h3 onClick={() => setBlog(blog)} style={{ cursor: 'pointer' }}>
-                    {blog.title}
-                  </h3>
-                  <p>{blog.content.substring(0, 80)}...</p>
-                  <p className="created-at">Created at: {blog.createdAt}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <BlogList
+            blogs={filteredBlogs}
+            setBlog={setBlog}
+            renderedIds={renderedIds}
+            loading={loading}
+            scrollableRef={scrollableRef}
+          />
         ) : (
           <BlogDetails blog={blog} setBlog={setBlog} />
         )}
-
-        <div className="card add-blog-card">
-          <h2>Add New Blog</h2>
-          <input
-            type="text"
-            placeholder="Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="input-field"
-          />
-          <textarea
-            placeholder="Content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="input-field"
-          ></textarea>
-          <button onClick={addBlog} className="add-blog-button">Add Blog</button>
-        </div>
+        <AddBlog blogs={blogs} setBlogs={setBlogs} />
       </div>
     </div>
   );

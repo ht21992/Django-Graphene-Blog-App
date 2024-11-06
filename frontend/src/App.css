@@ -92,26 +92,25 @@ h2 {
   border-color: #007bff;
 }
 
-.add-blog-button {
+.btn{
   padding: 12px 20px;
-  background-color: #007bff;
   color: #fff;
   border: none;
-  border-radius: 8px;
   cursor: pointer;
-  font-size: 16px;
   transition: background-color 0.3s ease;
 }
 
-.back-button {
-  padding: 12px 20px;
-  background-color: #ff006a;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.add-blog-button {
+  background-color: #007bff;
+  border-radius: 25px;
   font-size: 16px;
-  transition: background-color 0.3s ease;
+
+}
+
+.back-button {
+  background-color: #ff006a;
+  border-radius: 25px;
+  font-size: 12px;
 }
 
 .add-blog-button:hover {
@@ -146,3 +145,24 @@ h2 {
 }
 
 
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+}
+
+.spinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
