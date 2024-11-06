@@ -50,8 +50,21 @@ class CreatePost(graphene.Mutation):
         return CreatePost(post=post)
 
 
+class DeletePost(graphene.Mutation):
+    class Arguments:
+        post_id = graphene.ID(required=True)
+
+    success = graphene.Boolean()
+    deleted_id = graphene.Int()
+
+    def mutate(root, info, post_id):
+        Post.objects.get(id=post_id).delete()
+        return DeletePost(success=True,deleted_id=post_id)
+
+
 class Mutation(graphene.ObjectType):
     create_post = CreatePost.Field()
+    delete_post = DeletePost.Field()
 
 
 # Subscription

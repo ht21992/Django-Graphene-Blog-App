@@ -1,21 +1,27 @@
 import React, { useState } from "react";
-
-const AddBlog = ({blogs, setBlogs}) => {
+import { useDispatch } from "react-redux";
+import { addBlogAsync } from "../slices/blogSlice";
+const AddBlog = ({ blogs, setBlogs }) => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const dispatch = useDispatch();
 
   const addBlog = () => {
     if (title && content) {
-      const newBlog = {
-        id: blogs.length + 1,
-        title,
-        content,
-        createdAt: "2024-10-10 11:30 AM",
-        // createdAt: moment().format(),
-      };
-      setBlogs([newBlog, ...blogs]);
-      setTitle("");
-      setContent("");
+      setIsCreating(true);
+      dispatch(addBlogAsync({ title, content }))
+        .then((result) => {
+          if (!result.error) {
+            setTitle("");
+            setContent("");
+
+          }
+        })
+        .catch((error) => {
+          console.error("Error creating blog:", error);
+        });
+        setIsCreating(false);
     }
   };
 
@@ -35,7 +41,7 @@ const AddBlog = ({blogs, setBlogs}) => {
         onChange={(e) => setContent(e.target.value)}
         className="input-field"
       ></textarea>
-      <button onClick={addBlog} className="btn add-blog-button">
+      <button onClick={addBlog} className="btn add-blog-button" disabled={isCreating}>
         Add Blog
       </button>
     </div>

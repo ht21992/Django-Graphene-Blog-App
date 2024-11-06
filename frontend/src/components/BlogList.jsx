@@ -1,5 +1,6 @@
 import React from "react";
-
+import { useDispatch } from "react-redux";
+import { deleteBlogAsync } from "../slices/blogSlice";
 const sampleBlogs = [
   {
     id: 1,
@@ -73,38 +74,53 @@ const sampleBlogs = [
   },
 ];
 
-const BlogList = ({ blogs, setBlog, renderedIds, loading, scrollableRef,blogsFlag }) => (
-  <div
-    id="blogs-list-container"
-    className="blog-list-card card"
+const BlogList = ({
+  blogs,
+  setBlog,
+  renderedIds,
+  loading,
+  scrollableRef,
+  blogsFlag,
+}) => {
+  const dispatch = useDispatch();
+  const handleDeleteBlog = (postId) => {
 
-  >
-    <h2>Blog List</h2>
-    <div ref={scrollableRef} style={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}>
-      {blogs.map((blog) => {
-        if (renderedIds.has(blog.id)) {
-          return null;
-        }
-        renderedIds.add(blog.id);
-        return (
-          <div key={blog.id} className="blog-item">
-            <h3 onClick={() => setBlog(blog)} style={{ cursor: "pointer" }}>
-              {blog.title}
-            </h3>
-            <p>{blog.content.substring(0, 80)}...</p>
-            <p className="created-at">Created at: {blog.createdAt}</p>
+    dispatch(deleteBlogAsync({postId}))
+
+  }
+  return (
+    <div id="blogs-list-container" className="blog-list-card card">
+      <h2>Blog List</h2>
+      <div
+        ref={scrollableRef}
+        style={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}
+      >
+        {blogs.map((blog) => {
+          if (renderedIds.has(blog.id)) {
+            return null;
+          }
+          renderedIds.add(blog.id);
+          return (
+            <div key={blog.id} className="blog-item">
+              <h3 onClick={() => setBlog(blog)} style={{ cursor: "pointer" }}>
+                {blog.title}
+              </h3>
+              <p>{blog.content.substring(0, 80)}...</p>
+              <p className="created-at">Created at: {blog.createdAt}</p>
+              <button className="btn delete-button" onClick={() => handleDeleteBlog(blog.id)}>X</button>
+            </div>
+          );
+        })}
+        {blogsFlag && <p className="text-center"> No More Blogs</p>}
+        {loading && (
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p>Loading...</p>
           </div>
-        );
-      })}
-      {blogsFlag && (<p className="text-center"> No More Blogs</p>)}
-      {loading && (
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Loading...</p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default BlogList;
