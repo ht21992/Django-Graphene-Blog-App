@@ -87,4 +87,12 @@ mutation {
   }
 }
 
+subscription NewPost {
+    newPost {
+        id
+        title
+        content
+        createdAt
+    }
+}
 """

@@ -6,6 +6,7 @@ import AddBlog from "./components/AddBlog";
 import BlogDetails from "./components/BlogDetails";
 import BlogStats from "./components/BlogStats";
 import CSRFToken from "./components/CSRFToken";
+import BlogSubscription from "./BlogSubscription";
 import "./App.css";
 
 const App = () => {
@@ -61,6 +62,7 @@ const App = () => {
 
   return (
     <div className="app-container">
+      <BlogSubscription />
       <CSRFToken />
       <header className="header">
         <input

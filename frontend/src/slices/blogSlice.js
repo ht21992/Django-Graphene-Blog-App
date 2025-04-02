@@ -72,6 +72,7 @@ export const addBlogAsync = createAsyncThunk(
   }
 );
 
+
 export const deleteBlogAsync = createAsyncThunk(
   "blog/deleteBlog",
   async ({ postId }) => {
@@ -99,7 +100,9 @@ export const deleteBlogAsync = createAsyncThunk(
 const BlogSlice = createSlice({
   name: "blog",
   initialState: initialState,
-  reducers: {},
+  reducers: {addPost: (state, action) => {
+    state.blogs.unshift(action.payload);
+  },},
   extraReducers: (builder) => {
     builder
       .addCase(fetchBlogsAsync.pending, (state) => {
@@ -116,7 +119,8 @@ const BlogSlice = createSlice({
         state.maxBlogsLength = null;
       })
       .addCase(addBlogAsync.fulfilled, (state, action) => {
-        state.blogs.push(action.payload);
+        // state.blogs.push(action.payload);
+        // Do nothing for now
       })
       .addCase(deleteBlogAsync.fulfilled, (state, action) => {
         const blogsListArr = state.blogs;
@@ -128,5 +132,5 @@ const BlogSlice = createSlice({
   },
 });
 
-export const {} = BlogSlice.actions;
+export const {addPost} = BlogSlice.actions;
 export default BlogSlice.reducer;
